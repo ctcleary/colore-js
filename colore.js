@@ -36,10 +36,10 @@ var Colore = function(options) {
 Colore.prototype = {
   baseColor: function(opt_newColor) {
     if (arguments.length) {
-      this._setBaseColor(opt_newColor);
+      this._baseColor = new ColoreColor(opt_newColor);
       return this;
     } else {
-      return this._baseColor;
+      return this._baseColor.colorString();
     }
   },
   mixPure: function(opt_mixPure) {
@@ -57,7 +57,7 @@ Colore.prototype = {
     return this._threshold;
   },
   calcHoverColor: function() {
-    var aggValue = this._getColorAggregateValue();
+    var aggValue = this._baseColor.aggregateValue();
     if (aggValue > this.threshold()) {
       return this.shadeColor(10);
     } else {
@@ -79,7 +79,7 @@ Colore.prototype = {
     }
 
     var mixColor = this._determineMixColor(doTint);
-    var baseRgb = this._getRgbValues();
+    var baseRgb = this._baseColor.vals();
 
     var rgb = {};
     for (var c in baseRgb) {
@@ -91,116 +91,19 @@ Colore.prototype = {
       }
     }
 
-    if (this._opacity < 1) {
-      // this was an rgba() color
-      return 'rgba(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ',' + this._opacity + ')';
-    } else {
-      return 'rgb(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ')';
-    }
-  },
-  _setBaseColor: function(newColor) {
-    var cleanColor = newColor.trim();
-    // Normalize to an rgb color to make things easier.
-    if (this._isHexColor(cleanColor)) {
-      this._baseColor = this._hexToRgbColor(cleanColor);
-      this._opacity = 1;
-    } else if (this._isRgbColor(cleanColor)) {
-      this._baseColor = cleanColor;
+    var resultColor = new ColoreColor({
+      vals: rgb,
+      alpha: this._opacity
+    });
 
-      if (cleanColor.indexOf('rgba') !== -1) {
-        this._opacity = this._getAlphaValue(cleanColor);
-      } else {
-        this._opacity = 1;
-      }
-    } else {
-      // Must not use named colors like 'red' or 'blue'
-      // These will break the .tintColor and .shadeColor functions.
-      console.warn('Colore: Bad parameter. Must use an hex, rgb, or rgba color value.');
-      this._baseColor = this._defaultColor;
-    }
-    return this;
-  },
-  _getRgbValues: function() {
-    var rgbArr = this._getRgbArray();
-    var rgb = {
-      r: parseInt(rgbArr[0], 10),
-      g: parseInt(rgbArr[1], 10),
-      b: parseInt(rgbArr[2], 10)
-    };
-    return rgb;
-  },
-  _getColorAggregateValue: function() {
-    var rgb = this._getRgbValues();
-    return rgb.r + rgb.g + rgb.b; // Scale is 0 - 765 :: (0,0,0) - (255,255,255)
-  },
-  _isHexColor: function(color) {
-    var len = color.length;
-    return (color.indexOf('#') !== -1 && (len === 4 || len === 7)) ||
-      (len === 3 || len === 6);
-  },
-  _isRgbColor: function(color) {
-    var len = color.length;
-    return color.indexOf('rgb') === 0 && len >= 10 && len <= 22;
-  },
-  _getStrippedRgbString: function(origString) {
-    if (arguments.length) {
-      return origString.substring(origString.indexOf('(') + 1, origString.indexOf(')'));
-    } else {
-      return this._baseColor.substring(this._baseColor.indexOf('(') + 1, this._baseColor.indexOf(')'));
-    }
-  },
-  _getRgbArray: function() {
-    var strippedStr = this._getStrippedRgbString();
-    var rgbArr = strippedStr.split(',');
-    for (var i = rgbArr.length - 1; i >= 0; i--) {
-      rgbArr[i] = this._trim(rgbArr[i]);
-    }
-    return rgbArr;
-  },
-  _getAlphaValue: function(color) {
-    if (color.indexOf('rgba') === -1) {
-      return 1;
-    }
-
-    var strippedStr = this._getStrippedRgbString(color);
-    var alpha = strippedStr.split(',')[3]; // Example result: '0.5'
-    return alpha;
-  },
-  _h2n: function(h) {
-    // convert a hex value to base10 number.
-    return parseInt(h, 16);
-  },
-  _hexToRgbColor: function(color) {
-    var strippedHex = color.substr(color.indexOf('#') + 1);
-    var rgb = {};
-    if (strippedHex.length === 6) {
-      // 6 digit hex string
-      rgb.r = this._h2n('' + strippedHex[0] + strippedHex[1]);
-      rgb.g = this._h2n('' + strippedHex[2] + strippedHex[3]);
-      rgb.b = this._h2n('' + strippedHex[4] + strippedHex[5]);
-    } else {
-      // 3 digit hex string.
-      rgb.r = this._h2n('' + strippedHex[0] + strippedHex[0]);
-      rgb.g = this._h2n('' + strippedHex[1] + strippedHex[1]);
-      rgb.b = this._h2n('' + strippedHex[2] + strippedHex[2]);
-    }
-
-    return 'rgb(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ')';
-  },
-  _trim: function(str) {
-    if (typeof String.prototype.trim !== 'function') {
-      // <= IE 8
-      return str.replace(/^\s+|\s+$/g, '');
-    } else {
-      return str.trim();
-    }
+    return resultColor.colorString();
   },
   _determineMixColor: function(doTint) {
     if (this.mixPure()) {
       return this._returnPure(doTint);
     }
 
-    var rgb = this._getRgbValues();
+    var rgb = this._baseColor.vals();
     var mixRgb = {};
 
     if (doTint) {
@@ -218,7 +121,7 @@ Colore.prototype = {
       g: this._clampVal(srcRgb.g, minVal, 255),
       b: this._clampVal(srcRgb.b, minVal, 255)
     };
-    var aggregateVal = this._getColorAggregateValue(); // Max Value: 765
+    var aggregateVal = this._baseColor.aggregateValue(); // Max Value: 765
     var diffToMax = this._clampVal(765 / aggregateVal, 2, 1000); // min 2 in case baseColor is very bright
     return {
       r: this._clampVal(Math.floor(rgb.r * diffToMax)),
@@ -228,7 +131,7 @@ Colore.prototype = {
   },
   _determineShadeColor: function(srcRgb) {
     // TODO make smarter.
-    var aggregateVal = this._getColorAggregateValue(); // Max Value: 765
+    var aggregateVal = this._baseColor.aggregateValue(); // Max Value: 765
     var diffToMin = this._clampVal(1 / aggregateVal, 0.01, 0.05);
     return {
       r: Math.floor(srcRgb.r * diffToMin),
