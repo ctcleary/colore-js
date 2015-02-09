@@ -5,21 +5,30 @@
  * Distributed with GNU GPL v2.0 license.
  *
  * Color wrapper utility class for Colore.js
+ * 
+ * Constructor options: 
+ * new ColoreColor({
+ *   // Set color with either:
+ *   color: String, // Optional: Set color with: rgb(), rgba(), or hex color.
+ *   // Or:
+ *   vals:  Object, // Optional: Or set color with: { r: Number, g: Number, b: Number }
+ *   alpha: Number  // Optional: Set color transparency. 0.0 - 1.0
+ * })
+ *
  */
+
 var ColoreColor = function(options) {
-  // Defaults
+  // Set defaults
   this._rgb = {r: 128, g: 128, b: 128};
   this._alpha = 1;
 
   // Override defaults with options, if they exist.
   if (options) {
     if (options.color) {
-      // rgb, rgba, or hex string
       this.setColor(options.color);
     } else if (options.vals) {
       this._rgb = options.vals;
     }
-      
     if (options.alpha) {
       this._alpha = options.alpha;
     }
@@ -38,22 +47,11 @@ ColoreColor.prototype = {
 
     if (this._isHexColor(cleanColor)) {
       this._rgb = this._hexToRgbVals(cleanColor);
+      this._alpha = 1;
 
     } else {
-      var strippedRgbString = this._getStrippedRgbString(cleanColor);
-      var rgbArr = strippedRgbString.split(',');
-
-      this._rgb = {
-        r: rgbArr[0],
-        g: rgbArr[1],
-        b: rgbArr[2],
-      }
-
-      if (rgbArr.length > 3) {
-        this._alpha = this._getAlphaValue(cleanColor);
-      } else {
-        this._alpha = 1;
-      }
+      this._rgb = this._rgbStringToRgbVals(cleanColor);
+      this._alpha = this._getAlphaValue(cleanColor);
     }
 
     return this;
@@ -67,6 +65,13 @@ ColoreColor.prototype = {
   aggregateValue: function() {
     return this._rgb.r + this._rgb.g + this._rgb.b;
   },
+  alpha: function(opt_alpha) {
+    if (arguments.length) {
+      this._alpha = optthis._alpha;
+      return this;
+    }
+    return this._alpha;
+  },
   _isHexColor: function(color) {
     var len = color.length;
     return (color.indexOf('#') !== -1 && (len === 4 || len === 7)) ||
@@ -76,21 +81,30 @@ ColoreColor.prototype = {
     var len = color.length;
     return color.indexOf('rgb') === 0 && len >= 10 && len <= 22;
   },
-  _getStrippedRgbString: function(origString) {
-    if (arguments.length) {
-      return origString.substring(origString.indexOf('(') + 1, origString.indexOf(')'));
-    } else {
-      return this._baseColor.substring(this._baseColor.indexOf('(') + 1, this._baseColor.indexOf(')'));
+  _rgbStringToRgbVals: function(origString) {
+    var strippedRgbString = this._getStrippedRgbString(origString);
+    var rgbArr = strippedRgbString.split(',');
+
+    return {
+      r: parseInt(rgbArr[0], 10),
+      g: parseInt(rgbArr[1], 10),
+      b: parseInt(rgbArr[2], 10)
     }
+  },
+  _getStrippedRgbString: function(origString) {
+    return origString.substring(origString.indexOf('(') + 1, origString.indexOf(')'));
   },
   _getAlphaValue: function(color) {
     if (color.indexOf('rgba') === -1) {
       return 1;
     }
 
-    var strippedStr = this._getStrippedRgbString(color);
-    var alpha = strippedStr.split(',')[3]; // Example result: '0.5'
-    return alpha;
+    var valsArr = this._getStrippedRgbString(color).split(',');
+    if (valsArr.length < 4) {
+      return 1;
+    } else {
+      return parseFloat(valsArr[3]); // Example result: '0.5'
+    }
   },
   _h2n: function(h) {
     // convert a hex value to base10 number.
@@ -99,8 +113,8 @@ ColoreColor.prototype = {
   _hexToRgbVals: function(color) {
     var strippedHex = color.substr(color.indexOf('#') + 1);
 
+    // Double up if we were provided a 3 digit hex color.
     if (strippedHex.length === 3) {
-      // Double up if we were provided a 3 digit hex color.
       strippedHex = strippedHex[0] + strippedHex[0] + strippedHex[1] + strippedHex[1] + strippedHex[2] + strippedHex[2];
     }
 
@@ -113,6 +127,3 @@ ColoreColor.prototype = {
 };
 
 
-
-    // var c = new ColoreColor('#112233');
-    // debugger

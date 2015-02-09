@@ -22,24 +22,30 @@
  */
 
 var Colore = function(options) {
-  this._defaultColor = 'rgb(128, 128, 128)';
-  if (options.baseColor) {
-    this.baseColor(options.baseColor);
-  } else {
-    this.baseColor(this._defaultColor);
-  }
+  // Set defaults.
+  this._baseColor = new ColoreColor();
+  this._threshold = 600;
+  this._mixPure = false;
 
-  this._opacity = 1; // Will be set if an 'rgba' color is passed in.
-  this._threshold = options.threshold || 600;
-  this._mixPure = options.mixPure || false;
+  if (options) {
+    if (options.baseColor) {
+      this.baseColor(options.baseColor || '');
+    }
+    if (options.threshold) {
+      this._threshold = options.threshold;
+    }
+    if (options.mixPure) {
+      this._mixPure = options.mixPure;
+    }
+  }
 };
 Colore.prototype = {
   baseColor: function(opt_newColor) {
     if (arguments.length) {
-      this._baseColor = new ColoreColor(opt_newColor);
+      _baseColor = new ColoreColor({color: opt_newColor});
       return this;
     } else {
-      return this._baseColor.colorString();
+      return _baseColor.colorString();
     }
   },
   mixPure: function(opt_mixPure) {
@@ -57,7 +63,7 @@ Colore.prototype = {
     return this._threshold;
   },
   calcHoverColor: function() {
-    var aggValue = this._baseColor.aggregateValue();
+    var aggValue = _baseColor.aggregateValue();
     if (aggValue > this.threshold()) {
       return this.shadeColor(10);
     } else {
@@ -79,7 +85,8 @@ Colore.prototype = {
     }
 
     var mixColor = this._determineMixColor(doTint);
-    var baseRgb = this._baseColor.vals();
+    var baseRgb = _baseColor.vals();
+    var alpha = _baseColor.alpha();
 
     var rgb = {};
     for (var c in baseRgb) {
@@ -93,7 +100,7 @@ Colore.prototype = {
 
     var resultColor = new ColoreColor({
       vals: rgb,
-      alpha: this._opacity
+      alpha: alpha
     });
 
     return resultColor.colorString();
@@ -103,7 +110,7 @@ Colore.prototype = {
       return this._returnPure(doTint);
     }
 
-    var rgb = this._baseColor.vals();
+    var rgb = _baseColor.vals();
     var mixRgb = {};
 
     if (doTint) {
@@ -121,7 +128,7 @@ Colore.prototype = {
       g: this._clampVal(srcRgb.g, minVal, 255),
       b: this._clampVal(srcRgb.b, minVal, 255)
     };
-    var aggregateVal = this._baseColor.aggregateValue(); // Max Value: 765
+    var aggregateVal = _baseColor.aggregateValue(); // Max Value: 765
     var diffToMax = this._clampVal(765 / aggregateVal, 2, 1000); // min 2 in case baseColor is very bright
     return {
       r: this._clampVal(Math.floor(rgb.r * diffToMax)),
@@ -131,7 +138,7 @@ Colore.prototype = {
   },
   _determineShadeColor: function(srcRgb) {
     // TODO make smarter.
-    var aggregateVal = this._baseColor.aggregateValue(); // Max Value: 765
+    var aggregateVal = _baseColor.aggregateValue(); // Max Value: 765
     var diffToMin = this._clampVal(1 / aggregateVal, 0.01, 0.05);
     return {
       r: Math.floor(srcRgb.r * diffToMin),
