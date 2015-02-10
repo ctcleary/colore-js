@@ -2,7 +2,6 @@
 <head>
   <meta charset="utf-8"/>
   <script src="coloreColor.js" charset="utf-8"></script>
-  <script src="coloreMixer.js" charset="utf-8"></script>
   <script src="colore.js" charset="utf-8"></script>
   <style type="text/css">
   body {
@@ -26,9 +25,9 @@
   <br/>
   <input id="newColor" type="text" />
   <br/>
-  <input id="usePure" type="checkbox" onclick="c.mixPure(this.checked); populateGradient(colorInput.value);" /> <label for="usePure">Mix with pure White/Black</label>
+  <input id="mixPure" type="checkbox" onclick="populateGradient();" /> <label for="mixPure">Mix with pure White/Black</label>
   <br/>
-  <input type="button" value="Populate" onclick="populateGradient(colorInput.value);" />
+  <input type="button" value="Populate" onclick="populateGradient();" />
 
   <br/><br/>
   <div id="container">
@@ -38,49 +37,48 @@
   var testColor;
   // testColor = 'rgb(74, 62, 150)';
   // testColor = '#f243f9';
-  testColor = 'rgba(255,67,128,0.6)';
-  
+  testColor = 'rgba(26,200,128,0.95)';
+
   var colorInput = document.getElementById('newColor');
   colorInput.value = testColor;
-  var c = new Colore({baseColor: testColor});
+  var colorMixPure = document.getElementById('mixPure');
+
+  var c = Colore.getAdjuster({baseColor: testColor});
 
   populateGradient();
   function populateGradient(newColor) {
-    if (arguments.length) {
-      c.baseColor(newColor);
-    }
+    c.baseColor(colorInput.value);
+    c.mixPure(colorMixPure.checked)
 
     var container = document.getElementById('container');
     container.innerHTML = '';
     container.style.display = 'block';
     container.style.width = '120px';
     for (var i = 0; i <= 100; i = i + 10) {
-      var div = document.createElement('div');
-      div.style.display = 'inline-block';
-      div.style.width = '40px';
-      div.style.height = '40px';
-      div.style.backgroundColor = c.tintColor(i);
-      // div.style.float = 'left';
-      container.appendChild(div);
-
-      var div2 = document.createElement('div');
-      div2.style.display = 'inline-block';
-      div2.style.width = '40px';
-      div2.style.height = '40px';
-      // div2.style.float = 'right';
-      div2.style.backgroundColor = c.shadeColor(i);
-      container.appendChild(div2);
-
-      var div3 = document.createElement('div');
-      div3.style.display = 'inline-block';
-      div3.style.width = '40px';
-      div3.style.height = '12px';
-      div3.style.position = 'relative';
-      div3.style.top = '-14px';
-      div3.style.left = '8px';
-      div3.innerHTML = i+'%';
-      container.appendChild(div3);
+      container.appendChild(colorBox(c.tintColor(i)));
+      container.appendChild(colorBox(c.shadeColor(i)));
+      container.appendChild(percBox(i));
     }
+  }
+
+  function colorBox(color) {
+    var div = document.createElement('div');
+    div.style.display = 'inline-block';
+    div.style.width = '40px';
+    div.style.height = '40px';
+    div.style.backgroundColor = color;
+    return div;
+  }
+  function percBox(perc) {
+    var div = document.createElement('div');
+    div.style.display = 'inline-block';
+    div.style.width = '40px';
+    div.style.height = '12px';
+    div.style.position = 'relative';
+    div.style.top = '-14px';
+    div.style.left = '8px';
+    div.innerHTML = perc+'%';
+    return div;
   }
   </script>
 </body>
