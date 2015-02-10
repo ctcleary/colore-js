@@ -22,6 +22,15 @@
  */
 
 var Colore = function(options) {
+  // Utilities
+  this.Mixer = new ColoreMixer();
+  this._white = new ColoreColor({
+    vals: { r:255, g:255, b:255 }
+  });
+  this._black = new ColoreColor({
+    vals: { r:0, g:0, b:0 }
+  });
+  
   // Set defaults.
   this._baseColor = new ColoreColor();
   this._threshold = 600;
@@ -40,12 +49,13 @@ var Colore = function(options) {
   }
 };
 Colore.prototype = {
+  Mixer: new ColoreMixer(),
   baseColor: function(opt_newColor) {
     if (arguments.length) {
-      _baseColor = new ColoreColor({color: opt_newColor});
+      this._baseColor = new ColoreColor({color: opt_newColor});
       return this;
     } else {
-      return _baseColor.colorString();
+      return this._baseColor.colorString();
     }
   },
   mixPure: function(opt_mixPure) {
@@ -63,7 +73,7 @@ Colore.prototype = {
     return this._threshold;
   },
   calcHoverColor: function() {
-    var aggValue = _baseColor.aggregateValue();
+    var aggValue = this._baseColor.aggregateValue();
     if (aggValue > this.threshold()) {
       return this.shadeColor(10);
     } else {
@@ -85,82 +95,65 @@ Colore.prototype = {
     }
 
     var mixColor = this._determineMixColor(doTint);
-    var baseRgb = _baseColor.vals();
-    var alpha = _baseColor.alpha();
-
-    var rgb = {};
-    for (var c in baseRgb) {
-      if (baseRgb.hasOwnProperty(c)) {
-        var mixVal = mixColor[c];
-        var baseVal = baseRgb[c];
-        rgb[c] = Math.floor(baseVal + (mixVal - baseVal) * (weight / 100.0));
-        rgb[c] = this._clampVal(rgb[c]);
-      }
-    }
-
-    var resultColor = new ColoreColor({
-      vals: rgb,
-      alpha: alpha
-    });
-
-    return resultColor.colorString();
+    var newColor = this.Mixer.mix(this._baseColor, mixColor, weight);
+    return newColor.colorString();
   },
   _determineMixColor: function(doTint) {
     if (this.mixPure()) {
       return this._returnPure(doTint);
     }
 
-    var rgb = _baseColor.vals();
-    var mixRgb = {};
+    var rgb = this._baseColor.vals();
+    var mixColoreColor = {};
 
     if (doTint) {
-      mixRgb = this._determineTintColor(rgb);
+      mixColoreColor = this._determineTintColor(rgb);
     } else { // doShade
-      mixRgb = this._determineShadeColor(rgb);
+      mixColoreColor = this._determineShadeColor(rgb);
     }
-    return mixRgb;
+    return mixColoreColor;
   },
   _determineTintColor: function(srcRgb) {
     var highestVal = Math.max(srcRgb.r, srcRgb.g, srcRgb.b);
     var minVal = this._clampVal(highestVal / 2, 1, 255);
+
+    var aggregateVal = this._baseColor.aggregateValue(); // Max Value: 765
+    var diffToMax = this._clampVal(765 / aggregateVal, 2, 1000); // min 2 in case baseColor is very bright    
+
     var rgb = {
       r: this._clampVal(srcRgb.r, minVal, 255),
       g: this._clampVal(srcRgb.g, minVal, 255),
       b: this._clampVal(srcRgb.b, minVal, 255)
     };
-    var aggregateVal = _baseColor.aggregateValue(); // Max Value: 765
-    var diffToMax = this._clampVal(765 / aggregateVal, 2, 1000); // min 2 in case baseColor is very bright
-    return {
-      r: this._clampVal(Math.floor(rgb.r * diffToMax)),
-      g: this._clampVal(Math.floor(rgb.g * diffToMax)),
-      b: this._clampVal(Math.floor(rgb.b * diffToMax))
-    };
+    var tintColor = new ColoreColor({
+      vals: {
+        r: this._clampVal(Math.floor(rgb.r * diffToMax)),
+        g: this._clampVal(Math.floor(rgb.g * diffToMax)),
+        b: this._clampVal(Math.floor(rgb.b * diffToMax))
+      }
+    });
+
+    return tintColor;
   },
   _determineShadeColor: function(srcRgb) {
     // TODO make smarter.
-    var aggregateVal = _baseColor.aggregateValue(); // Max Value: 765
+    var aggregateVal = this._baseColor.aggregateValue(); // Max Value: 765
     var diffToMin = this._clampVal(1 / aggregateVal, 0.01, 0.05);
-    return {
-      r: Math.floor(srcRgb.r * diffToMin),
-      g: Math.floor(srcRgb.g * diffToMin),
-      b: Math.floor(srcRgb.b * diffToMin)
-    };
+    var shadeColor = new ColoreColor({
+      vals : {
+        r: Math.floor(srcRgb.r * diffToMin),
+        g: Math.floor(srcRgb.g * diffToMin),
+        b: Math.floor(srcRgb.b * diffToMin)
+      }
+    });
+
+    return shadeColor;
   },
   _returnPure: function(doTint) {
     if (doTint) {
-      return {
-        // pure white
-        r: 255,
-        g: 255,
-        b: 255
-      };
+      return this._white;
     } else {
-      return {
-        // pure black
-        r: 0,
-        g: 0,
-        b: 0
-      };
+      return this._black;
     }
   },
   _clampVal: function(toClamp, min, max) {
