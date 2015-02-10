@@ -4,21 +4,14 @@
  * Copyright (c) 2014 Connor Thomas Cleary
  * Distributed with GNU GPL v2.0 license.
  *
- * Constructor options:
- * new Colore({
- *   baseColor: String, // Optional: rgb(), rgba(), or hex color.
- *   threshold: Number, // Optional: Adjust the tint/shade level for calcHoverColor()`
- *   mixPure:   Boolean // Optional: Use pure white or pure black for tint/shade.
- * });
+ * Methods supported:
+ * Colore.mix(ColoreColor, ColoreColor, Number); // Returns a new ColoreColor, created by
+                               // mixing provided ColorColore objects by weight.
+ * Colore.color(String);       // Returns a new ColoreColor wrapper for provided Color String
+ * Colore.getAdjuster(String); // Return a ColoreAdjuster object for shading or tinting a provided `baseColor`
  *
- * Methods supported:              // * Setters support chaining
- * Colore.baseColor(opt_newColor)  // Set/Get the current baseColor
- * Colore.mixPure(opt_mixPure)     // Set/Get use pure white or pure black for tint/shade
- * Colore.threshold(opt_threshold) // Set/Get tint/shade treshold for `calcHoverColor()`
- * Colore.tintColor(percentage)    // Return Tint current baseColor by `percentage`%
- * Colore.shadeColor(percentage)   // Return Shade current baseColor by `percentage`%
- * Colore.calcHoverColor()         // Return an automatically generated hover color
- *
+ * ColoreAdjuster Methods supported:
+ * 
  */
 
 
