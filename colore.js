@@ -8,75 +8,17 @@
  * Colore.mix(ColoreColor, ColoreColor, Number); // Returns a new ColoreColor, created by
                                // mixing provided ColorColore objects by weight.
  * Colore.color(String);       // Returns a new ColoreColor wrapper for provided Color String
- * Colore.getAdjuster(String); // Return a ColoreAdjuster object for shading or tinting a provided `baseColor`
+ * Colore.Adjuster(String); // Return a ColoreAdjuster object for shading or tinting a provided `baseColor`
+ *
  *
  * ColoreAdjuster Methods supported:
- * 
+ *   .baseColor(opt_newColor)  // Set/Get the current baseColor
+ *   .mixPure(opt_mixPure)     // Set/Get use pure white or pure black for tint/shade
+ *   .threshold(opt_threshold) // Set/Get tint/shade treshold for `calcHoverColor()`
+ *   .calcHoverColor()         // Return an automatically generated hover color (i.e. for Interactive Elements)
+ *   .tintColor(percentage)    // Return Tint current baseColor by `percentage`%
+ *   .shadeColor(percentage)   // Return Shade current baseColor by `percentage`%
  */
-
-
-
-var ColoreAdjuster = function(options) {
-  this.Utils = Colore.Utils;
-
-  // Set defaults.
-  this._baseColor = new ColoreColor();
-  this._threshold = 600;
-  this._mixPure = false;
-
-  if (options) {
-    if (options.baseColor) {
-      this.baseColor(options.baseColor || '');
-    }
-    if (options.threshold) {
-      this._threshold = options.threshold;
-    }
-    if (options.mixPure) {
-      this._mixPure = options.mixPure;
-    }
-  }
-};
-ColoreAdjuster.prototype = {
-  baseColor: function(opt_newColor) {
-    if (arguments.length) {
-      this._baseColor = new ColoreColor({color: opt_newColor});
-      return this;
-    } else {
-      return this._baseColor.colorString();
-    }
-  },
-  mixPure: function(opt_mixPure) {
-    if (arguments.length) {
-      this._mixPure = opt_mixPure;
-      return this;
-    }
-    return this._mixPure;
-  },
-  threshold: function(opt_threshold) {
-    if (arguments.length) {
-      this._threshold = opt_threshold;
-      return this;
-    }
-    return this._threshold;
-  },
-  calcHoverColor: function() {
-    var aggValue = this._baseColor.aggregateValue();
-    if (aggValue > this.threshold()) {
-      return this.shadeColor(10);
-    } else {
-      return this.tintColor(30);
-    }
-  },
-  tintColor: function(percentage) {
-    return this.Utils.shiftColor(this._baseColor, percentage, this.mixPure(), true);
-  },
-  shadeColor: function(percentage) {
-    return this.Utils.shiftColor(this._baseColor, percentage, this.mixPure(), false);
-  }
-};
-
-
-
 
 var Colore = (function() {
   var ColoreUtils = (function() {
@@ -190,6 +132,12 @@ var Colore = (function() {
 
   return {
     Utils: ColoreUtils,
+    Adjuster: function(options) {
+      return new ColoreAdjuster(options);
+    }
+    Color: function(colorString) {
+      return new ColoreColor({ color: colorString });
+    }
     mix: function(baseColor, mixColor, weight, opt_asObject) {
       var resultColor = this.Utils.mix(baseColor, mixColor, weight);
       if (opt_asObject) {
@@ -197,13 +145,6 @@ var Colore = (function() {
       } else {
         return resultColor.colorString();
       }
-    },
-    color: function(colorString) {
-      return new ColoreColor({ color: colorString });
-    },
-    getAdjuster: function(options) {
-      return new ColoreAdjuster(options);
     }
   }
 })();
-
