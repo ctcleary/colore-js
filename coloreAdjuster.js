@@ -9,9 +9,10 @@
  * Constructor options: 
  * new ColoreAdjuster({
  *   // Set color with either:
- *   baseColor: String, // Set/Get baseColor from which to shade or tint.
- *   mixPure: Boolen,   // Set/Get option to 
- *
+ *   baseColor: String, // (Required-ish) Set baseColor from which to shade or tint.
+ *   mixPure: Boolen,   // (Optional) Default: false; Choose whether to shade/tint  
+ *   threshold: Number  // (Optional) Default: 600;   Aggregate color value threshold for shading or tinting. (0-765)
+ * });
  */
 
 var ColoreAdjuster = function(options) {
