@@ -5,10 +5,10 @@
  * Distributed with GNU GPL v2.0 license.
  *
  * Methods supported:
- * Colore.mix(ColoreColor, ColoreColor, Number); // Returns a new ColoreColor, created by
-                               // mixing provided ColorColore objects by weight.
- * Colore.color(String);       // Returns a new ColoreColor wrapper for provided Color String
- * Colore.Adjuster(String); // Return a ColoreAdjuster object for shading or tinting a provided `baseColor`
+ * Colore.mix(ColoreColor, ColoreColor, weight); // Returns a new ColoreColor, created by
+                                                 // mixing provided ColorColore objects by weight.
+ * Colore.Color(colorString);        // Returns a new ColoreColor wrapper for provided Color String
+ * Colore.Adjuster(baseColorString); // Returns a new ColoreAdjuster object for shading or tinting a provided `baseColor`
  *
  *
  * ColoreAdjuster Methods supported:
@@ -134,10 +134,10 @@ var Colore = (function() {
     Utils: ColoreUtils,
     Adjuster: function(options) {
       return new ColoreAdjuster(options);
-    }
+    },
     Color: function(colorString) {
       return new ColoreColor({ color: colorString });
-    }
+    },
     mix: function(baseColor, mixColor, weight, opt_asObject) {
       var resultColor = this.Utils.mix(baseColor, mixColor, weight);
       if (opt_asObject) {

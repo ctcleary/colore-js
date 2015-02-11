@@ -2,6 +2,7 @@
 <head>
   <meta charset="utf-8"/>
   <script src="coloreColor.js" charset="utf-8"></script>
+  <script src="coloreAdjuster.js" charset="utf-8"></script>
   <script src="colore.js" charset="utf-8"></script>
   <style type="text/css">
   body {
@@ -43,7 +44,7 @@
   colorInput.value = testColor;
   var colorMixPure = document.getElementById('mixPure');
 
-  var c = Colore.getAdjuster({baseColor: testColor});
+  var c = Colore.Adjuster({baseColor: testColor});
 
   populateGradient();
   function populateGradient(newColor) {
