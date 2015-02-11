@@ -1,9 +1,5 @@
 /**
- * Colore - v0.1 JavaScript Color Adjustment Utility
- * http://github.com/ctcleary
- * Copyright (c) 2014 Connor Thomas Cleary
- * Distributed with GNU GPL v2.0 license.
- *
+ * ColoreColor
  * Color wrapper utility class for Colore.js
  * 
  * Constructor options: 

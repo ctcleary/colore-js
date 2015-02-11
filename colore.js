@@ -1,5 +1,5 @@
 /**
- * Colore - v0.1 JavaScript Color Adjustment Utility
+ * Colore - v0.2 JavaScript Color Adjustment Utility
  * http://github.com/ctcleary
  * Copyright (c) 2014 Connor Thomas Cleary
  * Distributed with GNU GPL v2.0 license.
